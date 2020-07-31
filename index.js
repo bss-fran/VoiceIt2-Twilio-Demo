@@ -56,7 +56,7 @@ const incomingCall = async (req, res) => {
     // User already exists
     if(jsonResponse.exists === true) {
       // Greet the caller when their account profile is recognized by the VoiceIt API.
-      speak(twiml, "Welcome back to Black Sand Software´s Voice Biometrics Demo, your phone number has been recognized");
+      speak(twiml, "Bienvenido al sistema biométrico de Black Sand Software, su número ha sido reconocido");
       // Let's provide the caller with an opportunity to enroll by typing `1` on
       // their phone's keypad. Use the <Gather> verb to collect user input
       const gather = twiml.gather({
@@ -64,7 +64,7 @@ const incomingCall = async (req, res) => {
         numDigits: 1,
         timeout: 3
       });
-      speak(gather, "You may now log in, or press one to re enroll");
+      speak(gather, "Para realizar el reenrolamiento presiona 1, o aguarda para autenticarte");
       twiml.redirect('/enroll_or_verify?digits=TIMEOUT');
       res.type('text/xml');
       res.send(twiml.toString());
@@ -72,7 +72,7 @@ const incomingCall = async (req, res) => {
     } else {
       // Create a new user for new number
       myVoiceIt.createUser(async (jsonResponse)=>{
-        speak(twiml, "Welcome to the Black Sand Software´s Voice Biometrics Demo, you are a new user and will now be enrolled");
+        speak(twiml, "Bienvenido al sistema biométrico de Black Sand Software, usted no está registrado, procederemos al reenrolamiento");
         try {
           const client = await pool.connect()
           const result = await client.query('insert into users values ('+ phone +', \'' + jsonResponse.userId + '\')');
@@ -106,7 +106,7 @@ const enrollOrVerify = async (req, res) => {
       userId: userId,
       }, async (jsonResponse)=>{
         console.log("deleteAllEnrollments JSON: ", jsonResponse.message);
-        speak(twiml, "You have chosen to re enroll your voice, you will now be asked to say a phrase three times, then you will be able to log in with that phrase");
+        speak(twiml, "Ha seleccionado realizar el reenrolamiento, vamos a solicitarle repetir una frase 3 veces, y luego podrá autenticarse con su voz");
         twiml.redirect('/enroll');
         res.type('text/xml');
         res.send(twiml.toString());
@@ -117,7 +117,7 @@ const enrollOrVerify = async (req, res) => {
     myVoiceIt.getAllVoiceEnrollments({
       userId: userId
       }, async (jsonResponse)=>{
-        speak(twiml, "You have chosen to verify your Voice.");
+        speak(twiml, "Ha seleccionado autenticar su voz.");
         console.log("jsonResponse.message: ", jsonResponse.message);
         const enrollmentsCount = jsonResponse.count;
         console.log("enrollmentsCount: ", enrollmentsCount);
@@ -126,7 +126,7 @@ const enrollOrVerify = async (req, res) => {
           res.type('text/xml');
           res.send(twiml.toString());
         } else{
-          speak(twiml, "You do not have enough enrollments and need to re enroll your voice.");
+          speak(twiml, "No tiene suficientes muestras de audio, tiene que completar su enrolamiento.");
           //Delete User's voice enrollments and re-enroll
           myVoiceIt.deleteAllEnrollments({
             userId: userId,
@@ -145,7 +145,7 @@ const enrollOrVerify = async (req, res) => {
 const enroll = async (req, res) => {
   const enrollCount = req.query.enrollCount || 0;
   const twiml = new VoiceResponse();
-  speak(twiml, 'Please say the following phrase to enroll ');
+  speak(twiml, 'Por favor repita la siguiente frase para enrolarse');
   speak(twiml, config.chosenVoicePrintPhrase, config.contentLanguage);
 
   twiml.record({
@@ -168,16 +168,16 @@ const processEnrollment = async (req, res) => {
       enrollCount++;
       // VoiceIt requires at least 3 successful enrollments.
       if (enrollCount > 2) {
-        speak(twiml, 'Thank you, recording received, you are now enrolled and ready to log in');
+        speak(twiml, 'Muchas gracias, su grabación ha sido recibida. Ya se encuentra enrolado y puede autenticarse');
         twiml.redirect('/verify');
       } else {
-        speak(twiml, 'Thank you, recording received, you will now be asked to record your phrase again');
+        speak(twiml, 'Muchas gracias, su grabación ha sido recibida. Por favor vuelva a grabar su frase');
         twiml.redirect('/enroll?enrollCount=' + enrollCount);
       }
   }
 
   function enrollAgain(){
-    speak(twiml, 'Your recording was not successful, please try again');
+    speak(twiml, 'Su grabación no pudo procesarse, por favor intente nuevamente');
     twiml.redirect('/enroll?enrollCount=' + enrollCount);
   }
 
@@ -205,7 +205,7 @@ const processEnrollment = async (req, res) => {
 const verify = async (req, res) => {
   var twiml = new VoiceResponse();
 
-  speak(twiml, 'Please say the following phrase to verify your voice ');
+  speak(twiml, 'Por favor repita la siguiente frase para autenticarse');
   speak(twiml, config.chosenVoicePrintPhrase, config.contentLanguage);
 
   twiml.record({
@@ -234,36 +234,36 @@ const processVerification = async (req, res) => {
       console.log("createVoiceVerificationByUrl: ", jsonResponse.message);
 
       if (jsonResponse.responseCode == "SUCC") {
-        speak(twiml, 'Verification successful!');
-        speak(twiml,'Thank you for calling voice its voice biometrics demo. Have a nice day!');
+        speak(twiml, 'Autenticación Exitosa!');
+        speak(twiml,'Muchas gracias por utilizar el sistema biométrico de Black Sand Software. Que tengas un buen día!');
         //Hang up
       } else if (numTries > 2) {
         //3 attempts failed
-        speak(twiml,'Too many failed attempts. Please call back and select option 1 to re enroll and verify again.');
+        speak(twiml,'Ha superado el máximo de errores permitidos. Por favor llame nuevamente y seleccione la opción 1 para reenrolarse para proceder a la autenticación.');
       } else {
         switch (jsonResponse.responseCode) {
           case "STTF":
-              speak(twiml, "Verification failed. It seems you may not have said your enrolled phrase. Please try again.");
+              speak(twiml, "No pudo autenticarse. Parece que no ha dicho su frase de autenticación. Por favor intente nuevamente.");
               numTries = numTries + 1;
               twiml.redirect('/verify');
               break;
           case "FAIL":
-              speak(twiml,"Your verification did not pass, please try again.");
+              speak(twiml,"Su autenticación no fue aceptada, por favor intente nuevamente.");
               numTries = numTries + 1;
               twiml.redirect('/verify');
               break;
           case "SSTQ":
-              speak(twiml,"Please speak a little louder and try again.");
+              speak(twiml,"Por favor hable más fuerte e intente nuevamente.");
               numTries = numTries + 1;
               twiml.redirect('/verify');
               break;
           case "SSTL":
-              speak(twiml,"Please speak a little quieter and try again.");
+              speak(twiml,"Por favor hable más pausado e intente nuevamente.");
               numTries = numTries + 1;
               twiml.redirect('/verify');
               break;
           default:
-              speak(twiml,"Something went wrong. Your verification did not pass, please try again.");
+              speak(twiml,"Ha ocurrido un error. Su autenticación no fue aceptada, por favor intente nuevamente.");
               numTries = numTries + 1;
               twiml.redirect('/verify');
           }
@@ -274,7 +274,7 @@ const processVerification = async (req, res) => {
 
 };
 
-function speak(twiml, textToSpeak, contentLanguage = "en-US"){
+function speak(twiml, textToSpeak, contentLanguage = "es-MX"){
   twiml.say(textToSpeak, {
     voice: "alice",
     language: contentLanguage
