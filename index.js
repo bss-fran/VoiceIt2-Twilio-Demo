@@ -56,7 +56,7 @@ const incomingCall = async (req, res) => {
     // User already exists
     if(jsonResponse.exists === true) {
       // Greet the caller when their account profile is recognized by the VoiceIt API.
-      speak(twiml, "Welcome back to the Voice It Verification Demo, your phone number has been recognized");
+      speak(twiml, "Welcome back to Black Sand Software´s Voice Biometrics Demo, your phone number has been recognized");
       // Let's provide the caller with an opportunity to enroll by typing `1` on
       // their phone's keypad. Use the <Gather> verb to collect user input
       const gather = twiml.gather({
@@ -72,7 +72,7 @@ const incomingCall = async (req, res) => {
     } else {
       // Create a new user for new number
       myVoiceIt.createUser(async (jsonResponse)=>{
-        speak(twiml, "Welcome to the Voice It Verification Demo, you are a new user and will now be enrolled");
+        speak(twiml, "Welcome to the Black Sand Software´s Voice Biometrics Demo, you are a new user and will now be enrolled");
         try {
           const client = await pool.connect()
           const result = await client.query('insert into users values ('+ phone +', \'' + jsonResponse.userId + '\')');
