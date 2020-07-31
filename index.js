@@ -62,7 +62,7 @@ const incomingCall = async (req, res) => {
       const gather = twiml.gather({
         action: '/enroll_or_verify',
         numDigits: 1,
-        timeout: 5
+        timeout: 3
       });
       speak(gather, "You may now log in, or press one to re enroll");
       twiml.redirect('/enroll_or_verify?digits=TIMEOUT');
