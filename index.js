@@ -56,7 +56,7 @@ const incomingCall = async (req, res) => {
     // User already exists
     if(jsonResponse.exists === true) {
       // Greet the caller when their account profile is recognized by the VoiceIt API.
-      speak(twiml, "Bienvenido al sistema biométrico de Black Sand Software, su número ha sido reconocido");
+      speak(twiml, "Bienvenido al sistema biométrico de Blac Sand Software, su número ha sido reconocido");
       // Let's provide the caller with an opportunity to enroll by typing `1` on
       // their phone's keypad. Use the <Gather> verb to collect user input
       const gather = twiml.gather({
@@ -72,7 +72,7 @@ const incomingCall = async (req, res) => {
     } else {
       // Create a new user for new number
       myVoiceIt.createUser(async (jsonResponse)=>{
-        speak(twiml, "Bienvenido al sistema biométrico de Black Sand Software, usted no está registrado, procederemos al reenrolamiento");
+        speak(twiml, "Bienvenido al sistema biométrico de Blac Sand Software, usted no está registrado, procederemos al enrolamiento");
         try {
           const client = await pool.connect()
           const result = await client.query('insert into users values ('+ phone +', \'' + jsonResponse.userId + '\')');
@@ -106,7 +106,7 @@ const enrollOrVerify = async (req, res) => {
       userId: userId,
       }, async (jsonResponse)=>{
         console.log("deleteAllEnrollments JSON: ", jsonResponse.message);
-        speak(twiml, "Ha seleccionado realizar el reenrolamiento, vamos a solicitarle repetir una frase 3 veces, y luego podrá autenticarse con su voz");
+        speak(twiml, "Ha seleccionado realizar el enrolamiento nuevamente, vamos a solicitarle repetir una frase 3 veces");
         twiml.redirect('/enroll');
         res.type('text/xml');
         res.send(twiml.toString());
@@ -145,7 +145,7 @@ const enrollOrVerify = async (req, res) => {
 const enroll = async (req, res) => {
   const enrollCount = req.query.enrollCount || 0;
   const twiml = new VoiceResponse();
-  speak(twiml, 'Por favor repita la siguiente frase para enrolarse');
+  speak(twiml, 'Por favor repita la siguiente frase');
   speak(twiml, config.chosenVoicePrintPhrase, config.contentLanguage);
 
   twiml.record({
