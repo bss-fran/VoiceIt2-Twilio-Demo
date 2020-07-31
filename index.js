@@ -64,7 +64,7 @@ const incomingCall = async (req, res) => {
         numDigits: 1,
         timeout: 3
       });
-      speak(gather, "Para realizar el reenrolamiento presiona 1, o aguarda para autenticarte");
+      speak(gather, "Para enrolarse nuevamente presione 1, o aguarde para autenticarse");
       twiml.redirect('/enroll_or_verify?digits=TIMEOUT');
       res.type('text/xml');
       res.send(twiml.toString());
@@ -171,7 +171,7 @@ const processEnrollment = async (req, res) => {
         speak(twiml, 'Muchas gracias, su grabación ha sido recibida. Ya se encuentra enrolado y puede autenticarse');
         twiml.redirect('/verify');
       } else {
-        speak(twiml, 'Muchas gracias, su grabación ha sido recibida. Por favor vuelva a grabar su frase');
+        speak(twiml, 'Muchas gracias, su grabación ha sido recibida.');
         twiml.redirect('/enroll?enrollCount=' + enrollCount);
       }
   }
@@ -205,7 +205,7 @@ const processEnrollment = async (req, res) => {
 const verify = async (req, res) => {
   var twiml = new VoiceResponse();
 
-  speak(twiml, 'Por favor repita la siguiente frase para autenticarse');
+  speak(twiml, 'Repita la siguiente frase para autenticarse');
   speak(twiml, config.chosenVoicePrintPhrase, config.contentLanguage);
 
   twiml.record({
@@ -239,11 +239,11 @@ const processVerification = async (req, res) => {
         //Hang up
       } else if (numTries > 2) {
         //3 attempts failed
-        speak(twiml,'Ha superado el máximo de errores permitidos. Por favor llame nuevamente y seleccione la opción 1 para reenrolarse para proceder a la autenticación.');
+        speak(twiml,'Ha superado el máximo de errores permitidos. Por favor llame nuevamente.');
       } else {
         switch (jsonResponse.responseCode) {
           case "STTF":
-              speak(twiml, "No pudo autenticarse. Parece que no ha dicho su frase de autenticación. Por favor intente nuevamente.");
+              speak(twiml, "No pudo autenticarse. Parece que no ha dicho su frase de autenticación. Intente nuevamente.");
               numTries = numTries + 1;
               twiml.redirect('/verify');
               break;
